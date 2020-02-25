@@ -48,6 +48,30 @@ ClearScreen PROC USES esi edi edx ebx ecx
   ret
 ClearScreen ENDP
 
+CheckPlayerCollisions PROC USES esi edi edx ebx ecx
+  xor ecx, ecx
+  mov esi, OFFSET platforms
+  jmp EVAL
+  BODY:
+    invoke CheckIntersect, player.posX, player.posY, player.btmpPtr, 
+      (GameObject PTR [esi + ecx]).posX, (GameObject PTR [esi + ecx]).posY, 
+      (GameObject PTR [esi + ecx]).btmpPtr
+    cmp eax, 0
+    jne COLLIDED
+    add ecx, TYPE GameObject
+  EVAL:
+    cmp ecx, SIZEOF platforms
+    jl BODY
+
+  xor eax, eax
+  ret
+
+  COLLIDED:
+  mov eax, 0ffffffffh
+
+  ret
+CheckPlayerCollisions ENDP
+
 UpdatePlayer PROC USES esi edi edx ebx ecx
   ;; Case Analysis On KeyPress
   cmp KeyPress, VK_UP
@@ -55,30 +79,38 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
   jmp PHYSICS_UPDATES
 
   KEY_UP:
-    ;; Case 1: on MouseLeft, fire the engines
-    mov player.btmpPtr, OFFSET MarioJumping
+    ;; Case 1: On Mouse Up
     mov player.velY, 0fff80000h
     jmp PHYSICS_UPDATES
 
   PHYSICS_UPDATES:
-  ;; Update Position
-  mov ebx, player.velY
-  sar ebx, 16
-  add player.posY, ebx
+    ;; Update Position
+    mov ebx, player.velY
+    sar ebx, 16
+    add player.posY, ebx
 
-  ;; Factor in Gravity
-  add player.velY, 06fffh
+    ;; Factor in Gravity
+    add player.velY, 0bfffh
 
   CHECK_COLLISIONS:
-  invoke CheckIntersect, player.posX, player.posY, player.btmpPtr, 
-    platform1.posX, platform1.posY, platform1.btmpPtr
-  cmp eax, 0
-  je NO_COLLISION
+    invoke CheckIntersect, player.posX, player.posY, player.btmpPtr, 
+      platform1.posX, platform1.posY, platform1.btmpPtr
+    cmp eax, 0
+    je UPDATE_LOOK
 
-  ;; Collided: Kill the Velocity
-  mov player.velY, 0
+    ;; Collided: Kill the Velocity
+    mov player.velY, 0
 
-  NO_COLLISION:
+  UPDATE_LOOK:
+    cmp player.velY, 0
+    je STANDING
+    mov player.btmpPtr, OFFSET MarioJumping
+    jmp CONTINUE
+
+  STANDING:
+    mov player.btmpPtr, OFFSET MarioStanding
+
+  CONTINUE:
   ret
 UpdatePlayer ENDP
 
@@ -138,21 +170,25 @@ CheckIntersect PROC USES esi edi edx ebx ecx oneX:DWORD, oneY:DWORD, oneBitmap:P
   ;; Calculate the Corners
   mov eax, width1
   shr eax, 2
+  neg eax
   add eax, oneX
   mov x1, eax
 
   mov eax, height1
   shr eax, 2
+  neg eax
   add eax, oneY
   mov y1, eax
 
   mov eax, width2
   shr eax, 2
+  neg eax
   add eax, twoX
   mov x2, eax
 
   mov eax, height2
   shr eax, 2
+  neg eax
   add eax, twoY
   mov y2, eax
 
@@ -177,7 +213,7 @@ CheckIntersect PROC USES esi edi edx ebx ecx oneX:DWORD, oneY:DWORD, oneBitmap:P
   cmp y2, ecx
   jge NO_COLLISION
 
-  ;; Yes Collision
+  ;; Collision Occurred
   mov eax, 0ffffffffh
   jmp INTERSECT_RETURN
 
