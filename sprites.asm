@@ -11,6 +11,48 @@ include game.inc
 
 .CODE
 
+Fireball EECS205BITMAP <30, 21, 0,, offset Fireball + sizeof Fireball>
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0f4h,000h,000h,0f4h,0f4h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,0f4h,000h,000h,0f4h,0f4h,0e4h,0e4h
+	BYTE 0e4h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e4h,0e4h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,0e4h,0e4h,0e4h,0e4h,0e4h,000h,000h,0e4h,0e4h,0f4h,0f4h,0f4h,0e4h,0e4h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e8h
+	BYTE 0f4h,0f4h,0f4h,0f4h,0e4h,0e4h,0e4h,0e4h,0e4h,0e4h,0f4h,0f4h,0f4h,0e4h,0e4h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e4h,0e4h,0e4h
+	BYTE 0f4h,0f4h,0f4h,0e4h,0fbh,0ffh,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f0h,0e4h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0f4h,0f4h,0f4h,0f4h,0f4h,0ffh
+	BYTE 0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0f4h,0f4h,0f0h,0e4h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0ffh,0ffh,0ffh,0ffh,0ffh
+	BYTE 0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0f4h,0f4h,0f4h,0f4h,0e4h,000h,000h,000h,000h,000h
+	BYTE 000h,0f4h,0ffh,0fah,0fah,0f4h,0fah,0fah,0fah,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh
+	BYTE 0ffh,0ffh,0ffh,0ffh,0fah,0f4h,0f4h,0f4h,0e4h,000h,000h,000h,000h,000h,000h,0f4h
+	BYTE 0ffh,0ffh,0ffh,0f4h,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh
+	BYTE 0ffh,0ffh,0ffh,0f4h,0f4h,0f4h,0e4h,000h,000h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h
+	BYTE 0f4h,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh,0ffh
+	BYTE 0ffh,0f4h,0f0h,0e4h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e4h,0e4h,0e4h,0f4h
+	BYTE 0f4h,0f4h,0f4h,0f4h,0ffh,0ffh,0ffh,0ffh,0f5h,0f4h,0ffh,0ffh,0ffh,0ffh,0f4h,0f4h
+	BYTE 0f4h,0f4h,0e4h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0f4h,0f0h
+	BYTE 0e4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0ffh,0ffh,0f4h,0f4h,0f4h,0f4h,0f4h
+	BYTE 0e4h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e8h,0f4h,0f4h
+	BYTE 0f4h,0f4h,0f4h,0e4h,0f0h,0f4h,0f4h,0ffh,0f4h,0f4h,0f4h,0e4h,0e4h,0e4h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e4h,0f4h,0f4h,0f4h
+	BYTE 0e4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0f4h,0e4h,0e4h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,0e4h,0e4h,0e4h,0ech,0ech,0ech,0ech,0ech
+	BYTE 0ech,0ech,0f4h,0f4h,0f4h,0f4h,0ech,0e4h,0e4h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,0e4h,0e4h,0e4h,0e4h,0e4h,0e4h,0f4h,0e4h,0e4h,0e4h
+	BYTE 0f4h,0f4h,0f4h,0f4h,0e4h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,0e4h,000h,000h,000h,0e4h,0e4h
+	BYTE 0e4h,0e4h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
+	BYTE 000h,000h,000h,000h,000h,000h
+
 Platform EECS205BITMAP <100, 23, 255,, offset Platform + sizeof Platform>
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
@@ -156,7 +198,6 @@ Platform EECS205BITMAP <100, 23, 255,, offset Platform + sizeof Platform>
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
-
 
 MarioStanding EECS205BITMAP <40, 44, 255,, offset MarioStanding + sizeof MarioStanding>
 	BYTE 000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h,000h
