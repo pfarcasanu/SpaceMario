@@ -30,7 +30,7 @@ DELTA_TIME FXPT 0ffh
 
 GameInit PROC
 	;; Set up the Player
-  mov player.btmpPtr, OFFSET Rocket
+  mov player.btmpPtr, OFFSET MarioStanding
 
 	ret
 GameInit ENDP
@@ -61,14 +61,14 @@ UpdatePlayer PROC
   ;; Performs updates on the players fields
 
   ;; Case Analysis On KeyPress
-  cmp KeyPress, MK_SHIFT
+  cmp KeyPress, VK_UP
   je MOUSE_LEFT
   
   jmp AFTER_CASE_ANALYSIS
 
   MOUSE_LEFT:
   ;; Case 1: on MouseLeft, fire the engines
-  mov player.btmpPtr, OFFSET RocketFire
+  mov player.btmpPtr, OFFSET MarioJumping
   jmp AFTER_CASE_ANALYSIS
 
 

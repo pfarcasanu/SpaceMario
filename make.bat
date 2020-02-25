@@ -55,16 +55,16 @@ ml /I%MASMINCPATH% /c  /coff  /Cp game.asm
 
 if %errorlevel% neq 0 goto :error
 
-ml /I%MASMINCPATH% /c  /coff  /Cp Rocket.asm
+ml /I%MASMINCPATH% /c  /coff  /Cp MarioStanding.asm
 
 if %errorlevel% neq 0 goto :error
 
-ml /I%MASMINCPATH% /c  /coff  /Cp RocketFire.asm
+ml /I%MASMINCPATH% /c  /coff  /Cp MarioJumping.asm
 
 if %errorlevel% neq 0 goto :error
 
 
-link /SUBSYSTEM:WINDOWS  /LIBPATH:%MASMLIBPATH% game.obj blit.obj trig.obj lines.obj stars.obj libgame.obj Rocket.obj RocketFire.obj
+link /SUBSYSTEM:WINDOWS  /LIBPATH:%MASMLIBPATH% game.obj blit.obj trig.obj lines.obj stars.obj libgame.obj MarioStanding.obj MarioJumping.obj
 
 if %errorlevel% neq 0 goto :error
 
