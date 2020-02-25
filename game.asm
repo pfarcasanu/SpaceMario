@@ -29,11 +29,8 @@ DELTA_TIME FXPT 0ffh
 player GameObject <320, 240, 0, 0, 0, OFFSET MarioStanding>
 
 ;; Platforms
-platform1 GameObject <100, 300, -10, 0, 0, OFFSET Platform>
-
-; platforms GameObject <100, 300, -10, 0, OFFSET Platform>, 
-;   <300, 300, -10, 0, OFFSET Platform>, 
-;   <500, 300, -10, 0, OFFSET Platform>
+platforms GameObject <100, 285, 0, 0, 0, OFFSET Platform>, 
+  <300, 300, -10, 0, 0, OFFSET Platform>
 
 .CODE
 
@@ -49,8 +46,9 @@ GamePlay PROC
   ;; Draw
   invoke ClearScreen
   invoke BasicBlit, player.btmpPtr, player.posX, player.posY
-  ; invoke DrawPlatforms
-  invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
+  ; invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
+  ; invoke BasicBlit, platform2.btmpPtr, platform2.posX, platform2.posY
+  invoke DrawPlatforms
   invoke DrawStarField
 	ret
 GamePlay ENDP
@@ -68,19 +66,18 @@ ClearScreen PROC uses ecx edi
   ret
 ClearScreen ENDP
 
-; DrawPlatforms PROC uses ecx esi
-;   xor ecx, ecx
-;   mov esi, OFFSET platforms
-;   jmp EVAL
-;   BODY:
-;     invoke BasicBlit, (GameObject PTR [esi + ecx]).btmpPtr, (GameObject PTR [esi + ecx]).posX, 
-;       (GameObject PTR [esi + ecx]).posY
-;     add ecx, TYPE GameObject
-;   EVAL:
-;     cmp ecx, SIZEOF platforms
-;     jl BODY
-;   ret
-; DrawPlatforms ENDP
+DrawPlatforms PROC uses ecx
+  xor ecx, ecx
+  mov esi, OFFSET platforms
+  jmp EVAL
+  BODY:
+    invoke BasicBlit, (GameObject PTR [esi + ecx]).btmpPtr, (GameObject PTR [esi + ecx]).posX, (GameObject PTR [esi + ecx]).posY
+    add ecx, 24
+  EVAL:
+    cmp ecx, 25
+    jl BODY
+  ret
+DrawPlatforms ENDP
 
 UpdatePlayer PROC
   ;; Case Analysis On KeyPress
