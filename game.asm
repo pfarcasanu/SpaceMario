@@ -29,8 +29,9 @@ DELTA_TIME FXPT 0ffh
 player GameObject <320, 240, 0, 0, 0, OFFSET MarioStanding>
 
 ;; Platforms
-platforms GameObject <100, 285, 0, 0, 0, OFFSET Platform>, 
-  <300, 300, -10, 0, 0, OFFSET Platform>
+platform1 GameObject <100, 285, 0, 0, 0, OFFSET Platform>
+platform2 GameObject <225, 285, 0, 0, 0, OFFSET Platform>
+platforms GameObject <100, 285, 0, 0, 0, OFFSET Platform>;, <300, 300, -10, 0, 0, OFFSET Platform>
 
 .CODE
 
@@ -39,17 +40,28 @@ GameInit PROC
 	ret
 GameInit ENDP
 
-GamePlay PROC
+GamePlay PROC USES ecx esi
   ;; Perform Updates
-  invoke UpdatePlayer
+  ; invoke UpdatePlayer
 
   ;; Draw
-  invoke ClearScreen
+  ; invoke ClearScreen
   invoke BasicBlit, player.btmpPtr, player.posX, player.posY
-  ; invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
-  ; invoke BasicBlit, platform2.btmpPtr, platform2.posX, platform2.posY
-  invoke DrawPlatforms
-  invoke DrawStarField
+  invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
+  invoke BasicBlit, platform2.btmpPtr, platform2.posX, platform2.posY
+
+  mov esi, 0
+  jmp LOOP_EVAL
+  LOOP_BODY:
+  ; push ecx
+  invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+  ; pop ecx
+  add esi, 1
+  LOOP_EVAL:
+  cmp esi, 5
+  jl LOOP_BODY
+
+  ; invoke DrawStarField
 	ret
 GamePlay ENDP
 
@@ -57,7 +69,7 @@ GamePlay ENDP
 ;;             Helper Functions
 ;; ############################################
 
-ClearScreen PROC uses ecx edi
+ClearScreen PROC USES ecx edi
   cld
   mov ecx, 76800
   mov edi, ScreenBitsPtr
@@ -65,19 +77,6 @@ ClearScreen PROC uses ecx edi
   rep stosd
   ret
 ClearScreen ENDP
-
-DrawPlatforms PROC uses ecx
-  xor ecx, ecx
-  mov esi, OFFSET platforms
-  jmp EVAL
-  BODY:
-    invoke BasicBlit, (GameObject PTR [esi + ecx]).btmpPtr, (GameObject PTR [esi + ecx]).posX, (GameObject PTR [esi + ecx]).posY
-    add ecx, 24
-  EVAL:
-    cmp ecx, 25
-    jl BODY
-  ret
-DrawPlatforms ENDP
 
 UpdatePlayer PROC
   ;; Case Analysis On KeyPress

@@ -48,7 +48,6 @@ GameInit PROTO
 GamePlay PROTO
 ClearScreen PROTO
 UpdatePlayer PROTO
-DrawPlatforms PROTO
 CheckIntersect PROTO oneX:DWORD, oneY:DWORD, oneBitmap:PTR EECS205BITMAP, twoX:DWORD, twoY:DWORD, twoBitmap:PTR EECS205BITMAP 
 
 
