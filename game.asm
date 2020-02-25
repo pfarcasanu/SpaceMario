@@ -22,18 +22,16 @@ include keys.inc
 	
 .DATA
 
-;; Fxpt Value to mark how much time passes each frame
-DELTA_TIME FXPT 0ffh
-
 ;; Player is a Game Object
-player GameObject <320, 240, 0, 0, 0, OFFSET MarioStanding>
+player GameObject <50, 350, 0, 0, 0, OFFSET MarioStanding>
 
 ;; Platforms
-platforms GameObject <100, 285, -3, 0, 0, OFFSET Platform>, 
-  <225, 285, -3, 0, 0, OFFSET Platform>,
-  <350, 285, -3, 0, 0, OFFSET Platform>,
-  <475, 285, -3, 0, 0, OFFSET Platform>,
-  <600, 285, -3, 0, 0, OFFSET Platform>
+platform1 GameObject <50, 350, 0, 0, 0, OFFSET Platform>
+platforms GameObject <50, 400, -4, 0, 0, OFFSET Platform>, 
+  <200, 350, -4, 0, 0, OFFSET Platform>,
+  <315, 375, -4, 0, 0, OFFSET Platform>,
+  <475, 300, -4, 0, 0, OFFSET Platform>,
+  <600, 275, -4, 0, 0, OFFSET Platform>
 
 .CODE
 
@@ -59,11 +57,48 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
   KEY_UP:
     ;; Case 1: on MouseLeft, fire the engines
     mov player.btmpPtr, OFFSET MarioJumping
+    mov player.velY, 0fff80000h
     jmp PHYSICS_UPDATES
 
   PHYSICS_UPDATES:
+  ;; Update Position
+  mov ebx, player.velY
+  sar ebx, 16
+  add player.posY, ebx
+
+  ;; Factor in Gravity
+  add player.velY, 06fffh
+
+  CHECK_COLLISIONS:
+  invoke CheckIntersect, player.posX, player.posY, player.btmpPtr, 
+    platform1.posX, platform1.posY, platform1.btmpPtr
+  cmp eax, 0
+  je NO_COLLISION
+
+  ;; Collided: Kill the Velocity
+  mov player.velY, 0
+
+  NO_COLLISION:
   ret
 UpdatePlayer ENDP
+
+UpdatePlatforms PROC USES esi edi edx ebx ecx
+  xor ecx, ecx
+  mov esi, OFFSET platforms
+  jmp EVAL
+  BODY:
+    mov ebx, (GameObject PTR [esi + ecx]).velX
+    add (GameObject PTR [esi + ecx]).posX, ebx
+    cmp (GameObject PTR [esi + ecx]).posX, 0
+    jge CONTINUE
+    mov (GameObject PTR [esi + ecx]).posX, 700
+    CONTINUE:
+    add ecx, TYPE GameObject
+  EVAL:
+    cmp ecx, SIZEOF platforms
+    jl BODY
+  ret
+UpdatePlatforms ENDP
 
 DrawPlatforms PROC USES esi edi edx ebx ecx
   xor ecx, ecx
@@ -83,32 +118,73 @@ DrawPlatforms PROC USES esi edi edx ebx ecx
   ret
 DrawPlatforms ENDP
 
-UpdatePlatforms PROC USES esi edi edx ebx ecx
-  xor ecx, ecx
-  mov esi, OFFSET platforms
-  jmp EVAL
-  BODY:
-    push ecx
-    push esi
-
-    mov ebx, (GameObject PTR [esi + ecx]).posX
-    mov edx, (GameObject PTR [esi + ecx]).velX
-    add ebx, edx
-    mov (GameObject PTR [esi + ecx]).posX, ebx
-
-    pop esi
-    pop ecx
-
-    add ecx, TYPE GameObject
-  EVAL:
-    cmp ecx, SIZEOF platforms
-    jl BODY
-  ret
-UpdatePlatforms ENDP
-
 CheckIntersect PROC USES esi edi edx ebx ecx oneX:DWORD, oneY:DWORD, oneBitmap:PTR EECS205BITMAP, twoX:DWORD, twoY:DWORD, twoBitmap:PTR EECS205BITMAP 
-  ;; Collision Detection
+  LOCAL width1:DWORD, height1:DWORD, width2:DWORD, height2:DWORD
+  LOCAL x1:DWORD, y1:DWORD, x2:DWORD, y2:DWORD
 
+  ;; Save the Bitmap widths and heights
+  mov esi, oneBitmap
+  mov eax, (EECS205BITMAP PTR [esi]).dwWidth
+  mov width1, eax
+  mov eax, (EECS205BITMAP PTR [esi]).dwHeight
+  mov height1, eax
+
+  mov esi, twoBitmap
+  mov eax, (EECS205BITMAP PTR [esi]).dwWidth
+  mov width2, eax
+  mov eax, (EECS205BITMAP PTR [esi]).dwHeight
+  mov height2, eax
+
+  ;; Calculate the Corners
+  mov eax, width1
+  shr eax, 2
+  add eax, oneX
+  mov x1, eax
+
+  mov eax, height1
+  shr eax, 2
+  add eax, oneY
+  mov y1, eax
+
+  mov eax, width2
+  shr eax, 2
+  add eax, twoX
+  mov x2, eax
+
+  mov eax, height2
+  shr eax, 2
+  add eax, twoY
+  mov y2, eax
+
+  ;; Case Analysis
+  mov ecx, x2
+  add ecx, width2
+  cmp x1, ecx
+  jge NO_COLLISION
+
+  mov ecx, x1
+  add ecx, width1
+  cmp x2, ecx
+  jge NO_COLLISION
+
+  mov ecx, y2
+  add ecx, height2
+  cmp y1, ecx
+  jge NO_COLLISION
+
+  mov ecx, y1
+  add ecx, height1
+  cmp y2, ecx
+  jge NO_COLLISION
+
+  ;; Yes Collision
+  mov eax, 0ffffffffh
+  jmp INTERSECT_RETURN
+
+  NO_COLLISION:
+  xor eax, eax
+
+  INTERSECT_RETURN:
   ret
 CheckIntersect ENDP
 
@@ -131,6 +207,7 @@ GamePlay PROC USES esi edi edx ebx ecx
   ;; Draw
   invoke ClearScreen
   invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+  invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
   invoke DrawPlatforms
   invoke DrawStarField
 	ret
