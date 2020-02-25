@@ -22,7 +22,7 @@ include blit.inc
 	
 .CODE
 
-DrawPixel PROC uses esi ebx edx x:DWORD, y:DWORD, color:DWORD
+DrawPixel PROC USES esi edi edx ebx ecx x:DWORD, y:DWORD, color:DWORD
   ;; Skip to the end if out of bounds
   cmp x, 0
   jl DRAW_PIXEL_END
@@ -47,7 +47,7 @@ DrawPixel PROC uses esi ebx edx x:DWORD, y:DWORD, color:DWORD
 	ret 			; Don't delete this line!!!
 DrawPixel ENDP
 
-BasicBlit PROC USES esi edi ecx edx ebx ptrBitmap:PTR EECS205BITMAP , xcenter:DWORD, ycenter:DWORD
+BasicBlit PROC USES esi edi edx ebx ecx ptrBitmap:PTR EECS205BITMAP , xcenter:DWORD, ycenter:DWORD
   LOCAL xStartPos:DWORD, yStartPos:DWORD
   LOCAL dwWidth:DWORD, dwHeight:DWORD
   LOCAL tColor:BYTE
@@ -120,14 +120,14 @@ BasicBlit PROC USES esi edi ecx edx ebx ptrBitmap:PTR EECS205BITMAP , xcenter:DW
   ret
 BasicBlit ENDP
 
-TwosComplement PROC num:DWORD
+TwosComplement PROC USES esi edi edx ebx ecx num:DWORD
   mov eax, num
   not eax
   inc eax
   ret
 TwosComplement ENDP
 
-IntTimesFxpt PROC USES edx ebx dwInt:DWORD, fxptNum:FXPT 
+IntTimesFxpt PROC USES esi edi edx ebx ecx dwInt:DWORD, fxptNum:FXPT 
   ;; Multiplies an int by a fxpt --> returns a fixed point
 
   mov bl, 0 ;; byte keeps track of if result should be negative
@@ -169,14 +169,14 @@ IntTimesFxpt PROC USES edx ebx dwInt:DWORD, fxptNum:FXPT
 	ret
 IntTimesFxpt ENDP
 
-FxptToInt PROC fxptVal:FXPT
+FxptToInt PROC USES esi edi edx ebx ecx fxptVal:FXPT
   ;; shifts arithmetically to convert fixpt to int
   mov eax, fxptVal
   sar eax, 16
   ret
 FxptToInt ENDP
 
-RotateBlit PROC USES esi edi ebx edx ecx lpBmp:PTR EECS205BITMAP, xcenter:DWORD, ycenter:DWORD, angle:FXPT
+RotateBlit PROC USES esi edi edx ebx ecx lpBmp:PTR EECS205BITMAP, xcenter:DWORD, ycenter:DWORD, angle:FXPT
   LOCAL cosA:FXPT, sinA:FXPT, shiftX:FXPT, shiftY:FXPT
   LOCAL srcX:FXPT, srcY:FXPT, dstX:FXPT, dstY:FXPT
   LOCAL dwWidth:DWORD, dwHeight:DWORD, dstWidth:DWORD, dstHeight:DWORD

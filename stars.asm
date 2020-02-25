@@ -22,7 +22,7 @@ include stars.inc
 ;; DrawStar () --> (void)
 ;; Makes 18 calls to DrawStar, creating a starry night
 ;; DrawStar called with x, y value corresponding to pixel on a 640x480 screen
-DrawStarField proc
+DrawStarField PROC USES esi edi edx ebx ecx
 
   invoke DrawStar, 130, 55
 	invoke DrawStar, 50, 100

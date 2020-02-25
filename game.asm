@@ -29,47 +29,19 @@ DELTA_TIME FXPT 0ffh
 player GameObject <320, 240, 0, 0, 0, OFFSET MarioStanding>
 
 ;; Platforms
-platform1 GameObject <100, 285, 0, 0, 0, OFFSET Platform>
-platform2 GameObject <225, 285, 0, 0, 0, OFFSET Platform>
-platforms GameObject <100, 285, 0, 0, 0, OFFSET Platform>;, <300, 300, -10, 0, 0, OFFSET Platform>
+platforms GameObject <100, 285, -3, 0, 0, OFFSET Platform>, 
+  <225, 285, -3, 0, 0, OFFSET Platform>,
+  <350, 285, -3, 0, 0, OFFSET Platform>,
+  <475, 285, -3, 0, 0, OFFSET Platform>,
+  <600, 285, -3, 0, 0, OFFSET Platform>
 
 .CODE
-
-GameInit PROC
-
-	ret
-GameInit ENDP
-
-GamePlay PROC USES ecx esi
-  ;; Perform Updates
-  ; invoke UpdatePlayer
-
-  ;; Draw
-  ; invoke ClearScreen
-  invoke BasicBlit, player.btmpPtr, player.posX, player.posY
-  invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
-  invoke BasicBlit, platform2.btmpPtr, platform2.posX, platform2.posY
-
-  mov esi, 0
-  jmp LOOP_EVAL
-  LOOP_BODY:
-  ; push ecx
-  invoke BasicBlit, player.btmpPtr, player.posX, player.posY
-  ; pop ecx
-  add esi, 1
-  LOOP_EVAL:
-  cmp esi, 5
-  jl LOOP_BODY
-
-  ; invoke DrawStarField
-	ret
-GamePlay ENDP
 
 ;; ############################################
 ;;             Helper Functions
 ;; ############################################
 
-ClearScreen PROC USES ecx edi
+ClearScreen PROC USES esi edi edx ebx ecx
   cld
   mov ecx, 76800
   mov edi, ScreenBitsPtr
@@ -78,7 +50,7 @@ ClearScreen PROC USES ecx edi
   ret
 ClearScreen ENDP
 
-UpdatePlayer PROC
+UpdatePlayer PROC USES esi edi edx ebx ecx
   ;; Case Analysis On KeyPress
   cmp KeyPress, VK_UP
   je KEY_UP
@@ -93,10 +65,75 @@ UpdatePlayer PROC
   ret
 UpdatePlayer ENDP
 
-CheckIntersect PROC oneX:DWORD, oneY:DWORD, oneBitmap:PTR EECS205BITMAP, twoX:DWORD, twoY:DWORD, twoBitmap:PTR EECS205BITMAP 
-  ;; Collision Detection Procedure
+DrawPlatforms PROC USES esi edi edx ebx ecx
+  xor ecx, ecx
+  mov esi, OFFSET platforms
+  jmp EVAL
+  BODY:
+    push ecx
+    push esi
+    invoke BasicBlit, (GameObject PTR [esi + ecx]).btmpPtr, (GameObject PTR [esi + ecx]).posX, 
+      (GameObject PTR [esi + ecx]).posY
+    pop esi
+    pop ecx
+    add ecx, TYPE GameObject
+  EVAL:
+    cmp ecx, SIZEOF platforms
+    jl BODY
+  ret
+DrawPlatforms ENDP
+
+UpdatePlatforms PROC USES esi edi edx ebx ecx
+  xor ecx, ecx
+  mov esi, OFFSET platforms
+  jmp EVAL
+  BODY:
+    push ecx
+    push esi
+
+    mov ebx, (GameObject PTR [esi + ecx]).posX
+    mov edx, (GameObject PTR [esi + ecx]).velX
+    add ebx, edx
+    mov (GameObject PTR [esi + ecx]).posX, ebx
+
+    pop esi
+    pop ecx
+
+    add ecx, TYPE GameObject
+  EVAL:
+    cmp ecx, SIZEOF platforms
+    jl BODY
+  ret
+UpdatePlatforms ENDP
+
+CheckIntersect PROC USES esi edi edx ebx ecx oneX:DWORD, oneY:DWORD, oneBitmap:PTR EECS205BITMAP, twoX:DWORD, twoY:DWORD, twoBitmap:PTR EECS205BITMAP 
+  ;; Collision Detection
 
   ret
 CheckIntersect ENDP
+
+
+;; ############################################
+;;               Main Functions
+;; ############################################
+
+
+GameInit PROC USES esi edi edx ebx ecx
+
+	ret
+GameInit ENDP
+
+GamePlay PROC USES esi edi edx ebx ecx
+  ;; Perform Updates
+  invoke UpdatePlayer
+  invoke UpdatePlatforms
+
+  ;; Draw
+  invoke ClearScreen
+  invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+  invoke DrawPlatforms
+  invoke DrawStarField
+	ret
+GamePlay ENDP
 
 END

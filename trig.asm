@@ -18,7 +18,7 @@ include trig.inc
 PI_HALF = 102943           	;;  PI / 2
 PI =  205887	                ;;  PI
 TWO_PI	= 411774                ;;  2 * PI
-PI_INC_RECIP =  5340353        	;;  Use reciprocal to find the table entry for a given angle
+PI_INC_RECIP =  5340353        	;;  Use reciprcal to find the table entry for a given angle
 	                        ;;              (It is easier to use than divison would be)
 
 
@@ -26,7 +26,7 @@ PI_INC_RECIP =  5340353        	;;  Use reciprocal to find the table entry for a
 
 .CODE
 
-FixedSin PROC USES ebx edx esi angle:FXPT
+FixedSin PROC USES esi edi edx ebx ecx angle:FXPT
 	xor eax, eax
 
   ;; Case 0: angle is 0
@@ -57,7 +57,7 @@ FixedSin PROC USES ebx edx esi angle:FXPT
 
   ZERO_TO_PI_HALF:
   ;; Angle in [0, pi/2]
-  ;; Multiply by pi_reciprocal, round by using only the upper bits in edx
+  ;; Multiply by pi_reciprcal, round by using only the upper bits in edx
   mov eax, angle
   mov ebx, PI_INC_RECIP
   mul ebx
@@ -95,7 +95,7 @@ FixedSin PROC USES ebx edx esi angle:FXPT
 	ret			; Don't delete this line!!!
 FixedSin ENDP
 
-FixedCos PROC USES ebx angle:FXPT
+FixedCos PROC USES esi edi edx ebx ecx angle:FXPT
   ; Add pi/2 and call FixedSin
   mov ebx, angle
   add ebx, PI_HALF

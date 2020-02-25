@@ -22,7 +22,7 @@ include lines.inc
 
 ;; My name: Paul Farcasanu
 
-DrawLine PROC USES eax ecx edi esi x0:DWORD, y0:DWORD, x1:DWORD, y1:DWORD, color:DWORD
+DrawLine PROC USES esi edi edx ebx ecx x0:DWORD, y0:DWORD, x1:DWORD, y1:DWORD, color:DWORD
 	;; Feel free to use local variables...declare them here
 	;; For example:
 	;; 	LOCAL foo:DWORD, bar:DWORD
