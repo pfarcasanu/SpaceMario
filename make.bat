@@ -55,16 +55,9 @@ ml /I%MASMINCPATH% /c  /coff  /Cp game.asm
 
 if %errorlevel% neq 0 goto :error
 
-ml /I%MASMINCPATH% /c  /coff  /Cp MarioStanding.asm
+ml /I%MASMINCPATH% /c  /coff  /Cp sprites.asm
 
-if %errorlevel% neq 0 goto :error
-
-ml /I%MASMINCPATH% /c  /coff  /Cp MarioJumping.asm
-
-if %errorlevel% neq 0 goto :error
-
-
-link /SUBSYSTEM:WINDOWS  /LIBPATH:%MASMLIBPATH% game.obj blit.obj trig.obj lines.obj stars.obj libgame.obj MarioStanding.obj MarioJumping.obj
+link /SUBSYSTEM:WINDOWS  /LIBPATH:%MASMLIBPATH% game.obj blit.obj trig.obj lines.obj stars.obj libgame.obj sprites.obj
 
 if %errorlevel% neq 0 goto :error
 

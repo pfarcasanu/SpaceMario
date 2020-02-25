@@ -22,31 +22,42 @@ include keys.inc
 	
 .DATA
 
-;; Player is a Game Object
-player GameObject <320, 240, 0, 0, 0, ?>
+;; Fxpt Value to mark how much time passes each frame
 DELTA_TIME FXPT 0ffh
+
+;; Player is a Game Object
+player GameObject <320, 240, 0, 0, 0, OFFSET MarioStanding>
+
+;; Platforms
+platform1 GameObject <100, 300, -10, 0, 0, OFFSET Platform>
+
+; platforms GameObject <100, 300, -10, 0, OFFSET Platform>, 
+;   <300, 300, -10, 0, OFFSET Platform>, 
+;   <500, 300, -10, 0, OFFSET Platform>
 
 .CODE
 
 GameInit PROC
-	;; Set up the Player
-  mov player.btmpPtr, OFFSET MarioStanding
 
 	ret
 GameInit ENDP
 
 GamePlay PROC
-  ;; Clear the Screen, Update the Player
-  invoke ClearScreen
+  ;; Perform Updates
   invoke UpdatePlayer
+
+  ;; Draw
+  invoke ClearScreen
   invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+  ; invoke DrawPlatforms
+  invoke BasicBlit, platform1.btmpPtr, platform1.posX, platform1.posY
   invoke DrawStarField
 	ret
 GamePlay ENDP
 
-;; ################
-;; Helper Functions
-;; ################
+;; ############################################
+;;             Helper Functions
+;; ############################################
 
 ClearScreen PROC uses ecx edi
   cld
@@ -57,22 +68,32 @@ ClearScreen PROC uses ecx edi
   ret
 ClearScreen ENDP
 
-UpdatePlayer PROC
-  ;; Performs updates on the players fields
+; DrawPlatforms PROC uses ecx esi
+;   xor ecx, ecx
+;   mov esi, OFFSET platforms
+;   jmp EVAL
+;   BODY:
+;     invoke BasicBlit, (GameObject PTR [esi + ecx]).btmpPtr, (GameObject PTR [esi + ecx]).posX, 
+;       (GameObject PTR [esi + ecx]).posY
+;     add ecx, TYPE GameObject
+;   EVAL:
+;     cmp ecx, SIZEOF platforms
+;     jl BODY
+;   ret
+; DrawPlatforms ENDP
 
+UpdatePlayer PROC
   ;; Case Analysis On KeyPress
   cmp KeyPress, VK_UP
-  je MOUSE_LEFT
-  
-  jmp AFTER_CASE_ANALYSIS
+  je KEY_UP
+  jmp PHYSICS_UPDATES
 
-  MOUSE_LEFT:
-  ;; Case 1: on MouseLeft, fire the engines
-  mov player.btmpPtr, OFFSET MarioJumping
-  jmp AFTER_CASE_ANALYSIS
+  KEY_UP:
+    ;; Case 1: on MouseLeft, fire the engines
+    mov player.btmpPtr, OFFSET MarioJumping
+    jmp PHYSICS_UPDATES
 
-
-  AFTER_CASE_ANALYSIS:
+  PHYSICS_UPDATES:
   ret
 UpdatePlayer ENDP
 
