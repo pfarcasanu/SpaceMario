@@ -1,8 +1,11 @@
 ; #########################################################################
 ;
-;   game.asm - Assembly file for CompEng205 Assignment 4/5
-;
-;
+; Overview (Space Mario)
+;     -- Infinite sidescroller
+;     -- How To play
+;         -- Up Arrow: mario jumps
+;         -- Left Mouse: mario shoots a fireball (fireball does nothing)
+; 
 ; #########################################################################
 
       .586
