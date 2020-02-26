@@ -34,6 +34,9 @@ platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform, ?>,
   <510, 285, -5, 0, ?, OFFSET Platform, ?>,
   <665, 345, -5, 0, ?, OFFSET Platform, ?>
 
+backgrounds GameObject <600, 40, -2, ?, ?, OFFSET Sun, ?>,
+  <1300, 40, -2, ?, ?, OFFSET Moon, ?>
+
 ;; Fireball
 fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
 
@@ -52,9 +55,9 @@ ClearScreen PROC USES esi edi edx ebx ecx
   ret
 ClearScreen ENDP
 
-DrawPlatforms PROC USES esi edi edx ebx ecx
+DrawObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD
   xor ecx, ecx
-  mov esi, OFFSET platforms
+  mov esi, arrayPtr
   jmp EVAL
   BODY:
     push ecx
@@ -65,10 +68,10 @@ DrawPlatforms PROC USES esi edi edx ebx ecx
     pop ecx
     add ecx, TYPE GameObject
   EVAL:
-    cmp ecx, SIZEOF platforms
+    cmp ecx, arraySize
     jl BODY
   ret
-DrawPlatforms ENDP
+DrawObjects ENDP
 
 ;; ##################################################################
 ;;                        Collision Functions
@@ -185,9 +188,16 @@ CheckIntersect ENDP
 ;; ##################################################################
 
 PlayerJump PROC USES esi edi edx ebx ecx
+  ;; Player Can only jump if state = 1
+  ;; Player must also not be falling
   mov ecx, player.state
   cmp ecx, 1
   jne CONTINUE
+
+  mov ebx, player.velY
+  cmp ebx, 0
+  jne CONTINUE
+
   mov player.velY, 0fff60000h
   mov player.state, 0
   CONTINUE:
@@ -292,23 +302,24 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
   ret
 UpdatePlayer ENDP
 
-UpdatePlatforms PROC USES esi edi edx ebx ecx
+UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, resetX:DWORD
   xor ecx, ecx
-  mov esi, OFFSET platforms
+  mov esi, arrayPtr
   jmp EVAL
   BODY:
     mov ebx, (GameObject PTR [esi + ecx]).velX
     add (GameObject PTR [esi + ecx]).posX, ebx
     cmp (GameObject PTR [esi + ecx]).posX, 0
     jge CONTINUE
-    mov (GameObject PTR [esi + ecx]).posX, 700
+    mov edx, resetX
+    mov (GameObject PTR [esi + ecx]).posX, edx
     CONTINUE:
     add ecx, TYPE GameObject
   EVAL:
-    cmp ecx, SIZEOF platforms
+    cmp ecx, arraySize
     jl BODY
   ret
-UpdatePlatforms ENDP
+UpdateObjects ENDP
 
 UpdateFireball PROC USES esi edi edx ebx ecx
   mov ecx, fireball.posX
@@ -346,13 +357,15 @@ GamePlay PROC USES esi edi edx ebx ecx
 
   ;; Perform Updates
   invoke UpdatePlayer
-  invoke UpdatePlatforms
+  invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1300
+  invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700
   invoke UpdateFireball
 
   ;; Draw
   invoke ClearScreen
   invoke DrawStarField
-  invoke DrawPlatforms
+  invoke DrawObjects, OFFSET platforms, SIZEOF platforms
+  invoke DrawObjects, OFFSET backgrounds, SIZEOF backgrounds
   invoke BasicBlit, fireball.btmpPtr, fireball.posX, fireball.posY
   invoke BasicBlit, player.btmpPtr, player.posX, player.posY
 	ret
