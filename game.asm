@@ -25,16 +25,17 @@ include keys.inc
 .DATA
 
 ;; Player is a Game Object
-player GameObject <50, 250, 0, 0, ?, OFFSET MarioStanding>
+;; Player State, 0 = cant jump, 1 = can jump
+player GameObject <50, 250, 0, 0, ?, OFFSET MarioStanding, 1>
 
 ;; Platforms
-platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform>,
-  <330, 305, -5, 0, ?, OFFSET Platform>,
-  <510, 285, -5, 0, ?, OFFSET Platform>,
-  <665, 345, -5, 0, ?, OFFSET Platform>
+platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform, ?>,
+  <330, 305, -5, 0, ?, OFFSET Platform, ?>,
+  <510, 285, -5, 0, ?, OFFSET Platform, ?>,
+  <665, 345, -5, 0, ?, OFFSET Platform, ?>
 
 ;; Fireball
-fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball>
+fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
 
 .CODE
 
@@ -180,8 +181,18 @@ CheckIntersect PROC USES esi edi edx ebx ecx oneX:DWORD, oneY:DWORD, oneBitmap:P
 CheckIntersect ENDP
 
 ;; ##################################################################
-;;                        Input Handlers
+;;                         Event Handlers
 ;; ##################################################################
+
+PlayerJump PROC USES esi edi edx ebx ecx
+  mov ecx, player.state
+  cmp ecx, 1
+  jne CONTINUE
+  mov player.velY, 0fff60000h
+  mov player.state, 0
+  CONTINUE:
+  ret
+PlayerJump ENDP
 
 FireProjectile PROC USES esi edi edx ebx ecx
   mov ecx, fireball.posX
@@ -211,7 +222,7 @@ HandleKeyPress PROC USES esi edi edx ebx ecx
 
   KEY_UP:
     ;; Case 1: On Key Up --> Player Jumps
-    mov player.velY, 0fff60000h
+    invoke PlayerJump
     jmp CONTINUE
 
   CONTINUE:
@@ -253,12 +264,20 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
     cmp eax, 0
     je UPDATE_LOOK
 
-    ;; Collided: Kill the Velocity
-    ;; Set the players position to be on top of the platform
-    mov player.velY, 0
+    ;; Collided
+    ;; Assume the player is below the platform, increase the Velocity
+    mov player.velY, 01ffffh
     mov ebx, (GameObject PTR [eax]).posY
+    cmp player.posY, ebx
+    jge UPDATE_LOOK
+
+    ;; If the Player is above the platform, kill velocity
+    ;; Reset the position to be above the platform
+    ;; Reset state so player can jump
+    mov player.velY, 0
     sub ebx, 30
     mov player.posY, ebx
+    mov player.state, 1
 
   UPDATE_LOOK:
     cmp player.velY, 0

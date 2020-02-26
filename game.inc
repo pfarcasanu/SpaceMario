@@ -19,6 +19,7 @@ GameObject STRUCT
  velY     DWORD  ?
  rot      DWORD  ?
  btmpPtr  DWORD  ?
+ state    DWORD  ?
 GameObject ENDS
 
 MK_CONTROL  = 0008h  ;; The CTRL key is down.
