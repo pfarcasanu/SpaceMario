@@ -28,14 +28,15 @@ include keys.inc
 ;; Player State, 0 = cant jump, 1 = can jump
 player GameObject <50, 250, 0, 0, ?, OFFSET MarioStanding, 1>
 
-;; Platforms
+;; Platforms Array
 platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform, ?>,
   <330, 305, -5, 0, ?, OFFSET Platform, ?>,
   <510, 285, -5, 0, ?, OFFSET Platform, ?>,
   <665, 345, -5, 0, ?, OFFSET Platform, ?>
 
-backgrounds GameObject <600, 40, -2, ?, ?, OFFSET Sun, ?>,
-  <1300, 40, -2, ?, ?, OFFSET Moon, ?>
+;; Scrolling Background Array
+backgrounds GameObject <600, 40, -1, ?, ?, OFFSET Sun, ?>,
+  <1300, 40, -1, ?, ?, OFFSET Moon, ?>
 
 ;; Fireball
 fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
@@ -56,6 +57,8 @@ ClearScreen PROC USES esi edi edx ebx ecx
 ClearScreen ENDP
 
 DrawObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD
+  ;; General function for bliting GameObjects
+  ;; Takes an array pointer and size
   xor ecx, ecx
   mov esi, arrayPtr
   jmp EVAL
@@ -205,6 +208,8 @@ PlayerJump PROC USES esi edi edx ebx ecx
 PlayerJump ENDP
 
 FireProjectile PROC USES esi edi edx ebx ecx
+  ;; If the Fireball is already fired
+  ;; Don't fire it
   mov ecx, fireball.posX
   cmp ecx, 0
   jg CONTINUE
@@ -303,6 +308,8 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
 UpdatePlayer ENDP
 
 UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, resetX:DWORD
+  ;; General Function for GameObject physics updates
+  ;; Takes a pointer to an array, array size and value to reset position to
   xor ecx, ecx
   mov esi, arrayPtr
   jmp EVAL
@@ -322,6 +329,8 @@ UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, res
 UpdateObjects ENDP
 
 UpdateFireball PROC USES esi edi edx ebx ecx
+  ;; If the Pos < 0, then it's not firing so don't update
+  ;; Else, move it to infront of the player and give it velocity
   mov ecx, fireball.posX
   cmp ecx, 0
   jl CONTINUE
