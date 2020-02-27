@@ -22,8 +22,8 @@ GameObject STRUCT
 GameObject ENDS
 
 GameState STRUCT
- state      BYTE ? ;; 0 -- running, 1 -- paused, 2 -- menu (died)
- over       BYTE ?
+ state      BYTE ? ;; 0 -- running, 1 -- paused, 2 -- menu (died), 3 -- menu (won)
+ score      BYTE ?
 GameState ENDS
 
 MK_CONTROL  = 0008h  ;; The CTRL key is down.
@@ -43,7 +43,6 @@ EXTERNDEF StarBitmap:EECS205BITMAP
 EXTERNDEF MarioStanding:EECS205BITMAP
 EXTERNDEF MarioJumping:EECS205BITMAP
 EXTERNDEF Platform:EECS205BITMAP
-EXTERNDEF Fireball:EECS205BITMAP
 EXTERNDEF Sun:EECS205BITMAP
 EXTERNDEF Moon:EECS205BITMAP
 EXTERNDEF MouseStatus:MouseInfo

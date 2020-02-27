@@ -5,9 +5,10 @@
 ;     -- How To play
 ;         -- Up Arrow: mario jumps
 ;         -- P: Game Pauses
-;         -- Space: mario shoots a fireball (that does nothing)
 ;         -- R: If game is over, you can press this to restart
-; 
+;     -- Win Condition: you hit 50 points
+;     -- Lose Condition: you fall off
+;
 ; #########################################################################
 
       .586
@@ -22,7 +23,9 @@ include blit.inc
 include game.inc
 include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\windows.inc
 include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\winmm.inc
+include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\user32.inc
 includelib \Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\winmm.lib
+includelib \Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\user32.lib
 
 ;; Has keycodes
 include keys.inc
@@ -31,7 +34,7 @@ include keys.inc
 
 ;; Init a Struct to keep track of game state
 ;; Initially, game is running (0)
-gamestate GameState <0>
+gamestate GameState <0, 0>
 
 ;; Player is a Game Object
 ;; Player State, 0 = cant jump, 1 = can jump
@@ -47,18 +50,17 @@ platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform, ?>,
 
 ;; Scrolling Background Array
 backgrounds GameObject <600, 40, -1, ?, ?, OFFSET Sun, ?>,
-  <1300, 40, -1, ?, ?, OFFSET Moon, ?>
-
-;; Fireball
-fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
+  <1280, 40, -1, ?, ?, OFFSET Moon, ?>
 
 ;; Audio
 SongPath BYTE "rest.wav", 0
 
 ;; Text
-GameRunningText BYTE "Up Arrow: Jump    P: Toggle Pause    SpaceBar: Spit Decorative Fire", 0
-GameOverText BYTE "R: Restart", 0
+GameOverText BYTE "You lost :(   Press R to restart", 0
+GameWonText  BYTE "You won!  Press R to restart", 0
 GamePauseText BYTE "Paused", 0
+fmtStr BYTE "Up Arrow: Jump       P: Toggle Pause       Score: %d", 0
+outStr BYTE 256 DUP(0)
 
 .CODE
 
@@ -94,6 +96,17 @@ DrawObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD
     jl BODY
   ret
 DrawObjects ENDP
+
+DrawScore PROC USES esi edi edx ebx ecx 
+  movzx eax, gamestate.score
+  push eax
+  push offset fmtStr
+  push offset outStr
+  call wsprintf
+  add esp, 12
+  invoke DrawStr, offset outStr, 100, 425, 0ffh
+  ret
+DrawScore ENDP
 
 ;; ##################################################################
 ;;                        Collision Functions
@@ -226,44 +239,15 @@ PlayerJump PROC USES esi edi edx ebx ecx
   ret
 PlayerJump ENDP
 
-FireProjectile PROC USES esi edi edx ebx ecx
-  ;; If the Fireball is already fired
-  ;; Don't fire it
-  mov ecx, fireball.posX
-  cmp ecx, 0
-  jg CONTINUE
-
-  FIRE:
-    ;; Move the projectile to where the player is
-    ;; Give it velocity
-    mov ecx, player.posX
-    add ecx, 30
-    mov ebx, player.posY
-    mov fireball.posX, ecx
-    mov fireball.posY, ebx
-    mov fireball.velX, 5
-    jmp CONTINUE
-  
-  CONTINUE:
-  ret
-FireProjectile ENDP
-
 HandleKeyPress PROC USES esi edi edx ebx ecx
   ;; Case Analysis On KeyPress
   cmp KeyPress, VK_UP
   je KEY_UP
-  cmp KeyPress, VK_SPACE
-  je KEY_SPACE
   jmp CONTINUE
 
   KEY_UP:
     ;; Case 1: On Key Up --> Player Jumps
     invoke PlayerJump
-    jmp CONTINUE
-  
-  KEY_SPACE:
-    ;; Case 2: On space --> Fire a fireball
-    invoke FireProjectile
     jmp CONTINUE
 
   CONTINUE:
@@ -299,7 +283,7 @@ HandleKeyDown PROC USES esi edi edx ebx ecx
     ;; Restart the game if in menu
     mov cl, gamestate.state
     cmp cl, 2
-    jne CONTINUE
+    jl CONTINUE
 
     invoke GameInit
     jmp CONTINUE
@@ -363,9 +347,11 @@ UpdatePlayer PROC USES esi edi edx ebx ecx
   ret
 UpdatePlayer ENDP
 
-UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, resetX:DWORD
+UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, 
+  arraySize:DWORD, resetX:DWORD, score:BYTE
   ;; General Function for GameObject physics updates
   ;; Takes a pointer to an array, array size and value to reset position to
+  ;; Also takes a score value to update gamescore by
   xor ecx, ecx
   mov esi, arrayPtr
   jmp EVAL
@@ -374,8 +360,13 @@ UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, res
     add (GameObject PTR [esi + ecx]).posX, ebx
     cmp (GameObject PTR [esi + ecx]).posX, 0
     jge CONTINUE
+
+    ;; The object has gone off screen
+    ;; Reset its postion and increment score
     mov edx, resetX
     mov (GameObject PTR [esi + ecx]).posX, edx
+    mov bl, score
+    add gamestate.score, bl
     CONTINUE:
     add ecx, TYPE GameObject
   EVAL:
@@ -384,27 +375,15 @@ UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD, arraySize:DWORD, res
   ret
 UpdateObjects ENDP
 
-UpdateFireball PROC USES esi edi edx ebx ecx
-  ;; If the Pos < 0, then it's not firing so don't update
-  ;; Else, move it to infront of the player and give it velocity
-  mov ecx, fireball.posX
-  cmp ecx, 0
+CheckScore PROC USES esi edi edx ebx ecx 
+  ;; If score > 50, player wins
+  mov cl, gamestate.score
+  cmp cl, 50
   jl CONTINUE
-  cmp ecx, 340
-  jge RESET_FIREBALL
-
-  MOVE_FIREBALL:
-    add ecx, fireball.velX
-    mov fireball.posX, ecx
-    jmp CONTINUE
-  
-  RESET_FIREBALL:
-    mov fireball.posX, -100
-    jmp CONTINUE
-
+  mov gamestate.state, 3
   CONTINUE:
   ret
-UpdateFireball ENDP
+CheckScore ENDP
 
 ;; ############################################
 ;;             Main Functions & Init
@@ -437,8 +416,9 @@ GameInit PROC USES esi edi edx ebx ecx
   mov player.velY, 0
   invoke InitPlatforms
 
-  ;; Game state is running
+  ;; Game state is running, score is 0
   mov gamestate.state, 0
+  mov gamestate.score, 0
 
   ret
 GameInit ENDP
@@ -455,7 +435,9 @@ GamePlay PROC USES esi edi edx ebx ecx
   cmp cl, 1
   je PAUSED
   cmp cl, 2
-  je MENU
+  je MENU_LOST
+  cmp cl, 3
+  je MENU_WON
 
   RUNNING:
     ;; Handle User Input
@@ -463,18 +445,17 @@ GamePlay PROC USES esi edi edx ebx ecx
 
     ;; Perform Updates
     invoke UpdatePlayer
-    invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1260
-    invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700
-    invoke UpdateFireball
+    invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1290, 10
+    invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700, 1
+    invoke CheckScore
 
     ;; Draw
     invoke ClearScreen
     invoke DrawStarField
     invoke DrawObjects, OFFSET platforms, SIZEOF platforms
     invoke DrawObjects, OFFSET backgrounds, SIZEOF backgrounds
-    invoke BasicBlit, fireball.btmpPtr, fireball.posX, fireball.posY
     invoke BasicBlit, player.btmpPtr, player.posX, player.posY
-    invoke DrawStr, OFFSET GameRunningText, 50, 420, 0ffh
+    invoke DrawScore
     jmp CONTINUE
 
   PAUSED:
@@ -482,10 +463,16 @@ GamePlay PROC USES esi edi edx ebx ecx
     invoke DrawStr, OFFSET GamePauseText, 280, 220, 0ffh
     jmp CONTINUE
 
-  MENU:
+  MENU_LOST:
     ;; Draw the game over text
     invoke ClearScreen
-    invoke DrawStr, OFFSET GameOverText, 260, 220, 0ffh
+    invoke DrawStr, OFFSET GameOverText, 190, 220, 0ffh
+    jmp CONTINUE
+
+  MENU_WON:
+    ;; Draw the game over text
+    invoke ClearScreen
+    invoke DrawStr, OFFSET GameWonText, 200, 220, 0ffh
     jmp CONTINUE
 
   CONTINUE:
