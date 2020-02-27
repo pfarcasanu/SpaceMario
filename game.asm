@@ -1,10 +1,12 @@
 ; #########################################################################
 ;
 ; Overview (Space Mario)
-;     -- Infinite sidescroller
+;     -- Infinite sidescroller in space
 ;     -- How To play
 ;         -- Up Arrow: mario jumps
-;         -- Left Mouse: mario shoots a fireball (fireball does nothing)
+;         -- P: Game Pauses
+;         -- Space: mario shoots a fireball (that does nothing)
+;         -- R: If game is over, you can press this to restart
 ; 
 ; #########################################################################
 
@@ -268,22 +270,6 @@ HandleKeyPress PROC USES esi edi edx ebx ecx
   ret
 HandleKeyPress ENDP
 
-HandleMouseClicks PROC USES esi edi edx ebx ecx
-  ;; Case Analysis On Mouse Buttons
-  mov ecx, MouseStatus.buttons
-  cmp ecx, MK_LBUTTON
-  je LEFT_BUTTON
-  jmp CONTINUE
-
-  LEFT_BUTTON:
-    ;; Case 1: On Left Mouse --> Fireball
-    invoke FireProjectile
-    jmp CONTINUE
-
-  CONTINUE:
-  ret
-HandleMouseClicks ENDP
-
 HandleKeyDown PROC USES esi edi edx ebx ecx
   ;; Case Analysis on Key Down
   cmp KeyDown, VK_P
@@ -474,11 +460,10 @@ GamePlay PROC USES esi edi edx ebx ecx
   RUNNING:
     ;; Handle User Input
     invoke HandleKeyPress
-    invoke HandleMouseClicks
 
     ;; Perform Updates
     invoke UpdatePlayer
-    invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1300
+    invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1260
     invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700
     invoke UpdateFireball
 
