@@ -2,7 +2,6 @@
 ;
 ;   game.inc - Includes for CompEng205 Assignment 4/5
 ;
-;
 ; #########################################################################
 
 ;; Library Definitions
@@ -21,6 +20,11 @@ GameObject STRUCT
  btmpPtr  DWORD  ?
  state    DWORD  ?
 GameObject ENDS
+
+GameState STRUCT
+ state      BYTE ? ;; 0 -- running, 1 -- paused, 2 -- menu (died)
+ over       BYTE ?
+GameState ENDS
 
 MK_CONTROL  = 0008h  ;; The CTRL key is down.
 MK_LBUTTON  = 0001h  ;; The left mouse button is down.

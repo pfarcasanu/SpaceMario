@@ -18,11 +18,18 @@ include lines.inc
 include trig.inc
 include blit.inc
 include game.inc
+include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\windows.inc
+include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\winmm.inc
+includelib \Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\winmm.lib
 
 ;; Has keycodes
 include keys.inc
 
 .DATA
+
+;; Init a Struct to keep track of game state
+;; Initially, game is running (0)
+gamestate GameState <0>
 
 ;; Player is a Game Object
 ;; Player State, 0 = cant jump, 1 = can jump
@@ -40,6 +47,9 @@ backgrounds GameObject <600, 40, -1, ?, ?, OFFSET Sun, ?>,
 
 ;; Fireball
 fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
+
+;; Audio
+SongPath BYTE "rest.wav", 0
 
 .CODE
 
@@ -233,11 +243,18 @@ HandleKeyPress PROC USES esi edi edx ebx ecx
   ;; Case Analysis On KeyPress
   cmp KeyPress, VK_UP
   je KEY_UP
+  cmp KeyPress, VK_SPACE
+  je KEY_SPACE
   jmp CONTINUE
 
   KEY_UP:
     ;; Case 1: On Key Up --> Player Jumps
     invoke PlayerJump
+    jmp CONTINUE
+  
+  KEY_SPACE:
+    ;; Case 2: On space --> Fire a fireball
+    invoke FireProjectile
     jmp CONTINUE
 
   CONTINUE:
@@ -260,11 +277,46 @@ HandleMouseClicks PROC USES esi edi edx ebx ecx
   ret
 HandleMouseClicks ENDP
 
+HandleKeyDown PROC USES esi edi edx ebx ecx
+  ;; Case Analysis on Key Down
+  cmp KeyDown, VK_P
+  je KEY_P
+  jmp CONTINUE
+
+  KEY_P:
+    ;; Flip whether or not game is running
+    mov cl, gamestate.state
+    cmp cl, 0
+    je RUNNING
+    cmp cl, 1
+    je PAUSED
+    jmp CONTINUE
+
+    RUNNING:
+      mov gamestate.state, 1
+      jmp CONTINUE
+    
+    PAUSED:
+      mov gamestate.state, 0
+      jmp CONTINUE
+
+  CONTINUE:
+  mov KeyDown, 0
+  ret
+HandleKeyDown ENDP
+
 ;; ##################################################################
 ;;                        Update Functions
 ;; ##################################################################
 
 UpdatePlayer PROC USES esi edi edx ebx ecx
+  LIFE_UPDATES:
+    ;; Check to see if the player died
+    mov edx, player.posY
+    cmp edx, 630
+    jl PHYSICS_UPDATES
+    mov gamestate.state, 2
+
   PHYSICS_UPDATES:
     ;; Update Position
     mov ebx, player.velY
@@ -355,28 +407,52 @@ UpdateFireball ENDP
 ;; ############################################
 
 GameInit PROC USES esi edi edx ebx ecx
-
-	ret
+  ;; Start Playing Music
+	invoke PlaySound, offset SongPath, 0, SND_ASYNC
+  ret
 GameInit ENDP
 
 GamePlay PROC USES esi edi edx ebx ecx
-  ;; Handle User Input
-  invoke HandleKeyPress
-  invoke HandleMouseClicks
+  ;; Handle KeyDown no matter what
+  ;;  (check for pauses)
+  invoke HandleKeyDown
 
-  ;; Perform Updates
-  invoke UpdatePlayer
-  invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1300
-  invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700
-  invoke UpdateFireball
+  
+  mov cl, gamestate.state
+  cmp cl, 0
+  je RUNNING
+  cmp cl, 1
+  je PAUSED
+  cmp cl, 2
+  je MENU
 
-  ;; Draw
-  invoke ClearScreen
-  invoke DrawStarField
-  invoke DrawObjects, OFFSET platforms, SIZEOF platforms
-  invoke DrawObjects, OFFSET backgrounds, SIZEOF backgrounds
-  invoke BasicBlit, fireball.btmpPtr, fireball.posX, fireball.posY
-  invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+  RUNNING:
+    ;; Handle User Input
+    invoke HandleKeyPress
+    invoke HandleMouseClicks
+
+    ;; Perform Updates
+    invoke UpdatePlayer
+    invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1300
+    invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700
+    invoke UpdateFireball
+
+    ;; Draw
+    invoke ClearScreen
+    invoke DrawStarField
+    invoke DrawObjects, OFFSET platforms, SIZEOF platforms
+    invoke DrawObjects, OFFSET backgrounds, SIZEOF backgrounds
+    invoke BasicBlit, fireball.btmpPtr, fireball.posX, fireball.posY
+    invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+    jmp CONTINUE
+
+  PAUSED:
+    jmp CONTINUE
+
+  MENU:
+    jmp CONTINUE
+
+  CONTINUE:
 	ret
 GamePlay ENDP
 
