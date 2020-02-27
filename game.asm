@@ -36,6 +36,8 @@ gamestate GameState <0>
 player GameObject <50, 250, 0, 0, ?, OFFSET MarioStanding, 1>
 
 ;; Platforms Array
+platformX DWORD 160, 330, 510, 665
+platformY DWORD 355, 305, 285, 345
 platforms GameObject <160, 355, -5, 0, ?, OFFSET Platform, ?>,
   <330, 305, -5, 0, ?, OFFSET Platform, ?>,
   <510, 285, -5, 0, ?, OFFSET Platform, ?>,
@@ -50,6 +52,9 @@ fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
 
 ;; Audio
 SongPath BYTE "rest.wav", 0
+
+;; Text
+GameOverText BYTE "Press r to restart", 0
 
 .CODE
 
@@ -281,6 +286,8 @@ HandleKeyDown PROC USES esi edi edx ebx ecx
   ;; Case Analysis on Key Down
   cmp KeyDown, VK_P
   je KEY_P
+  cmp KeyDown, VK_R
+  je KEY_R
   jmp CONTINUE
 
   KEY_P:
@@ -299,6 +306,15 @@ HandleKeyDown PROC USES esi edi edx ebx ecx
     PAUSED:
       mov gamestate.state, 0
       jmp CONTINUE
+
+  KEY_R:
+    ;; Restart the game if in menu
+    mov cl, gamestate.state
+    cmp cl, 2
+    jne CONTINUE
+
+    invoke GameInit
+    jmp CONTINUE
 
   CONTINUE:
   mov KeyDown, 0
@@ -403,21 +419,48 @@ UpdateFireball PROC USES esi edi edx ebx ecx
 UpdateFireball ENDP
 
 ;; ############################################
-;;               Main Functions
+;;             Main Functions & Init
 ;; ############################################
+
+InitPlatforms PROC USES esi edi edx ebx ecx
+  ;; Initializes Platform x and y positions
+  xor ecx, ecx
+  xor edx, edx
+  jmp EVAL
+  BODY:
+    mov esi, [platformX + edx]
+    mov edi, [platformY + edx]
+    mov (GameObject PTR [platforms + ecx]).posX, esi
+    mov (GameObject PTR [platforms + ecx]).posY, edi
+    add ecx, TYPE GameObject
+    add edx, TYPE DWORD
+  EVAL:
+    cmp ecx, SIZEOF platforms
+    jl BODY
+  ret
+InitPlatforms ENDP
 
 GameInit PROC USES esi edi edx ebx ecx
   ;; Start Playing Music
 	invoke PlaySound, offset SongPath, 0, SND_ASYNC
+
+  ;; Reset Objects & Player
+  mov player.posY, 250
+  mov player.velY, 0
+  invoke InitPlatforms
+
+  ;; Game state is running
+  mov gamestate.state, 0
+
   ret
 GameInit ENDP
 
 GamePlay PROC USES esi edi edx ebx ecx
   ;; Handle KeyDown no matter what
-  ;;  (check for pauses)
   invoke HandleKeyDown
 
-  
+  ;; Case Analysis on the Different States
+  ;; Running, Paused, and Menu
   mov cl, gamestate.state
   cmp cl, 0
   je RUNNING
@@ -447,9 +490,12 @@ GamePlay PROC USES esi edi edx ebx ecx
     jmp CONTINUE
 
   PAUSED:
+    ;; Do nothing
     jmp CONTINUE
 
   MENU:
+    ;; Draw the game over text
+    invoke DrawStr, OFFSET GameOverText, 240, 210, 0ffh
     jmp CONTINUE
 
   CONTINUE:
