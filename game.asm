@@ -54,7 +54,9 @@ fireball GameObject <-100, ?, ?, ?, ?, OFFSET Fireball, ?>
 SongPath BYTE "rest.wav", 0
 
 ;; Text
-GameOverText BYTE "Press r to restart", 0
+GameRunningText BYTE "Up Arrow: Jump    P: Toggle Pause    SpaceBar: Spit Decorative Fire", 0
+GameOverText BYTE "R: Restart", 0
+GamePauseText BYTE "Paused", 0
 
 .CODE
 
@@ -487,15 +489,18 @@ GamePlay PROC USES esi edi edx ebx ecx
     invoke DrawObjects, OFFSET backgrounds, SIZEOF backgrounds
     invoke BasicBlit, fireball.btmpPtr, fireball.posX, fireball.posY
     invoke BasicBlit, player.btmpPtr, player.posX, player.posY
+    invoke DrawStr, OFFSET GameRunningText, 50, 420, 0ffh
     jmp CONTINUE
 
   PAUSED:
-    ;; Do nothing
+    ;; Draw Pause Text
+    invoke DrawStr, OFFSET GamePauseText, 280, 220, 0ffh
     jmp CONTINUE
 
   MENU:
     ;; Draw the game over text
-    invoke DrawStr, OFFSET GameOverText, 240, 210, 0ffh
+    invoke ClearScreen
+    invoke DrawStr, OFFSET GameOverText, 260, 220, 0ffh
     jmp CONTINUE
 
   CONTINUE:
