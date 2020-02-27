@@ -21,11 +21,11 @@ include lines.inc
 include trig.inc
 include blit.inc
 include game.inc
-include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\windows.inc
-include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\winmm.inc
-include \Users\paulfarcasanu\wine-masm\drive_c\masm32\include\user32.inc
-includelib \Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\winmm.lib
-includelib \Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\user32.lib
+include Z:\Users\paulfarcasanu\wine-masm\drive_c\masm32\include\windows.inc
+include Z:\Users\paulfarcasanu\wine-masm\drive_c\masm32\include\winmm.inc
+include Z:\Users\paulfarcasanu\wine-masm\drive_c\masm32\include\user32.inc
+includelib Z:\Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\winmm.lib
+includelib Z:\Users\paulfarcasanu\wine-masm\drive_c\masm32\lib\user32.lib
 
 ;; Has keycodes
 include keys.inc
