@@ -6,7 +6,6 @@
 ;         -- Up Arrow: mario jumps
 ;         -- P: Game Pauses
 ;         -- R: If game is over, you can press this to restart
-;     -- Win Condition: you hit 50 points
 ;     -- Lose Condition: you fall off
 ;
 ; #########################################################################
@@ -375,16 +374,6 @@ UpdateObjects PROC USES esi edi edx ebx ecx arrayPtr:DWORD,
   ret
 UpdateObjects ENDP
 
-CheckScore PROC USES esi edi edx ebx ecx 
-  ;; If score > 50, player wins
-  mov cl, gamestate.score
-  cmp cl, 50
-  jl CONTINUE
-  mov gamestate.state, 3
-  CONTINUE:
-  ret
-CheckScore ENDP
-
 ;; ############################################
 ;;             Main Functions & Init
 ;; ############################################
@@ -447,7 +436,6 @@ GamePlay PROC USES esi edi edx ebx ecx
     invoke UpdatePlayer
     invoke UpdateObjects, OFFSET backgrounds, SIZEOF backgrounds, 1290, 10
     invoke UpdateObjects, OFFSET platforms, SIZEOF platforms, 700, 1
-    invoke CheckScore
 
     ;; Draw
     invoke ClearScreen
