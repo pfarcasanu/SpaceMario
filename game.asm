@@ -1,15 +1,3 @@
-; #########################################################################
-;
-; Overview (Space Mario)
-;     -- Infinite sidescroller in space
-;     -- How To play
-;         -- Up Arrow: mario jumps
-;         -- P: Game Pauses
-;         -- R: If game is over, you can press this to restart
-;     -- Lose Condition: you fall off
-;
-; #########################################################################
-
       .586
       .MODEL FLAT,STDCALL
       .STACK 4096
